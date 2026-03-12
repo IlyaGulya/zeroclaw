@@ -1564,7 +1564,7 @@ impl Default for WebSearchConfig {
 /// To revert, remove the `[google_workspace]` section from the config file (or
 /// set `enabled = false`). No data migration is required; the tool simply stops
 /// being registered.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
 pub struct GoogleWorkspaceConfig {
     /// Enable the `google_workspace` tool. Default: `false`.
     #[serde(default)]
@@ -1577,15 +1577,6 @@ pub struct GoogleWorkspaceConfig {
     /// optional underscores/hyphens, and unique.
     #[serde(default)]
     pub allowed_services: Vec<String>,
-}
-
-impl Default for GoogleWorkspaceConfig {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            allowed_services: Vec::new(),
-        }
-    }
 }
 
 // ── Proxy ───────────────────────────────────────────────────────
@@ -5278,6 +5269,8 @@ impl Config {
         // MCP
         if self.mcp.enabled {
             validate_mcp_config(&self.mcp)?;
+        }
+
         // Google Workspace allowed_services validation
         let mut seen_gws_services = std::collections::HashSet::new();
         for (i, service) in self.google_workspace.allowed_services.iter().enumerate() {
