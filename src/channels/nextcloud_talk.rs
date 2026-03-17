@@ -294,7 +294,7 @@ impl NextcloudTalkChannel {
             channel: "nextcloud_talk".to_string(),
             timestamp,
             thread_ts: None,
-        });
+            metadata: None,        });
 
         messages
     }

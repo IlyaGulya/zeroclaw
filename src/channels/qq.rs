@@ -465,7 +465,7 @@ impl Channel for QQChannel {
                                     .unwrap_or_default()
                                     .as_secs(),
                                 thread_ts: None,
-                            };
+                                metadata: None,                            };
 
                             if tx.send(channel_msg).await.is_err() {
                                 tracing::warn!("QQ: message channel closed");
@@ -503,7 +503,7 @@ impl Channel for QQChannel {
                                     .unwrap_or_default()
                                     .as_secs(),
                                 thread_ts: None,
-                            };
+                                metadata: None,                            };
 
                             if tx.send(channel_msg).await.is_err() {
                                 tracing::warn!("QQ: message channel closed");

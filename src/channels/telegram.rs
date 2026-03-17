@@ -1,4 +1,4 @@
-use super::traits::{Channel, ChannelMessage, SendMessage};
+use super::traits::{Channel, ChannelMessage, MessageMetadata, SendMessage};
 use crate::config::{Config, StreamMode};
 use crate::security::pairing::PairingGuard;
 use anyhow::Context;
@@ -1074,7 +1074,7 @@ Allowlist Telegram username (without '@') or numeric user ID.",
                 .unwrap_or_default()
                 .as_secs(),
             thread_ts: thread_id,
-        })
+            metadata: None,        })
     }
 
     /// Attempt to parse a Telegram update as a voice message and transcribe it.
@@ -1191,7 +1191,7 @@ Allowlist Telegram username (without '@') or numeric user ID.",
                 .unwrap_or_default()
                 .as_secs(),
             thread_ts: thread_id,
-        })
+            metadata: None,        })
     }
 
     /// Extract sender username and display identity from a Telegram message object.
@@ -1287,16 +1287,15 @@ Allowlist Telegram username (without '@') or numeric user ID.",
         }
 
         let is_group = Self::is_group_message(message);
-        if self.mention_only && is_group {
+        let is_bot_mentioned = if is_group {
             let bot_username = self.bot_username.lock();
-            if let Some(ref bot_username) = *bot_username {
-                if !Self::contains_bot_mention(text, bot_username) {
-                    return None;
-                }
-            } else {
-                return None;
-            }
-        }
+            bot_username
+                .as_ref()
+                .is_some_and(|name| Self::contains_bot_mention(text, name))
+        } else {
+            // Direct messages are implicitly "mentioning" the bot.
+            true
+        };
 
         let chat_id = message
             .get("chat")
@@ -1322,7 +1321,7 @@ Allowlist Telegram username (without '@') or numeric user ID.",
             chat_id.clone()
         };
 
-        let content = if self.mention_only && is_group {
+        let content = if self.mention_only && is_group && is_bot_mentioned {
             let bot_username = self.bot_username.lock();
             let bot_username = bot_username.as_ref()?;
             Self::normalize_incoming_content(text, bot_username)?
@@ -1347,6 +1346,10 @@ Allowlist Telegram username (without '@') or numeric user ID.",
                 .unwrap_or_default()
                 .as_secs(),
             thread_ts: thread_id,
+            metadata: Some(MessageMetadata {
+                is_group,
+                is_bot_mentioned,
+            }),
         })
     }
 

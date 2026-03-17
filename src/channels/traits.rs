@@ -1,5 +1,17 @@
 use async_trait::async_trait;
 
+/// Channel-level metadata describing transport facts about a message.
+/// Channels populate these fields based on their own protocol knowledge;
+/// the processing layer uses them for business-logic decisions.
+#[derive(Debug, Clone)]
+pub struct MessageMetadata {
+    /// Whether the message originates from a group/channel conversation
+    /// (as opposed to a direct/private message).
+    pub is_group: bool,
+    /// Whether the bot was explicitly mentioned in the message.
+    pub is_bot_mentioned: bool,
+}
+
 /// A message received from or sent to a channel
 #[derive(Debug, Clone)]
 pub struct ChannelMessage {
@@ -12,6 +24,9 @@ pub struct ChannelMessage {
     /// Platform thread identifier (e.g. Slack `ts`, Discord thread ID).
     /// When set, replies should be posted as threaded responses.
     pub thread_ts: Option<String>,
+    /// Transport-level metadata provided by the channel.
+    /// `None` means the channel does not supply metadata (legacy default).
+    pub metadata: Option<MessageMetadata>,
 }
 
 /// Message to send through a channel
@@ -182,6 +197,7 @@ mod tests {
                 channel: "dummy".into(),
                 timestamp: 123,
                 thread_ts: None,
+                metadata: None,
             })
             .await
             .map_err(|e| anyhow::anyhow!(e.to_string()))
@@ -198,6 +214,7 @@ mod tests {
             channel: "dummy".into(),
             timestamp: 999,
             thread_ts: None,
+            metadata: None,
         };
 
         let cloned = message.clone();
