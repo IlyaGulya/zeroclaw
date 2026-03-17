@@ -823,7 +823,7 @@ impl LarkChannel {
                             .unwrap_or_default()
                             .as_secs(),
                         thread_ts: None,
-                    };
+                        metadata: None,                    };
 
                     tracing::debug!("Lark WS: message in {}", lark_msg.chat_id);
                     if tx.send(channel_msg).await.is_err() { break; }
@@ -1120,7 +1120,7 @@ impl LarkChannel {
             channel: self.channel_name().to_string(),
             timestamp,
             thread_ts: None,
-        });
+            metadata: None,        });
 
         messages
     }

@@ -66,7 +66,7 @@ pub use qq::QQChannel;
 pub use signal::SignalChannel;
 pub use slack::SlackChannel;
 pub use telegram::TelegramChannel;
-pub use traits::{Channel, SendMessage};
+pub use traits::{Channel, MessageMetadata, SendMessage};
 #[allow(unused_imports)]
 pub use tts::{TtsManager, TtsProvider};
 pub use wati::WatiChannel;
@@ -282,6 +282,27 @@ impl InterruptOnNewMessageConfig {
     }
 }
 
+/// Per-channel `mention_only` configuration. When enabled for a channel,
+/// messages that do not mention the bot are stored in conversation context
+/// but do not trigger an LLM response.
+#[derive(Clone, Copy)]
+struct MentionOnlyConfig {
+    telegram: bool,
+    discord: bool,
+    mattermost: bool,
+}
+
+impl MentionOnlyConfig {
+    fn enabled_for_channel(self, channel: &str) -> bool {
+        match channel {
+            "telegram" => self.telegram,
+            "discord" => self.discord,
+            "mattermost" => self.mattermost,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Clone)]
 struct ChannelRuntimeContext {
     channels_by_name: Arc<HashMap<String, Arc<dyn Channel>>>,
@@ -306,6 +327,7 @@ struct ChannelRuntimeContext {
     workspace_dir: Arc<PathBuf>,
     message_timeout_secs: u64,
     interrupt_on_new_message: InterruptOnNewMessageConfig,
+    mention_only: MentionOnlyConfig,
     multimodal: crate::config::MultimodalConfig,
     hooks: Option<Arc<crate::hooks::HookRunner>>,
     non_cli_excluded_tools: Arc<Vec<String>>,
@@ -1785,6 +1807,28 @@ async fn process_channel_message(
         return;
     }
 
+    // ── Observe-only: store in group context without triggering a response ──
+    // When `mention_only` is enabled for a channel and the message metadata
+    // indicates a group message where the bot was NOT mentioned, we append the
+    // message to a shared group history key so that subsequent @-mention
+    // responses can see the conversation context.
+    if ctx.mention_only.enabled_for_channel(&msg.channel) {
+        if let Some(ref meta) = msg.metadata {
+            if meta.is_group && !meta.is_bot_mentioned {
+                let group_key = format!("{}_group_{}", msg.channel, msg.reply_target);
+                let labeled = format!("[{}]: {}", msg.sender, msg.content);
+                append_sender_turn(ctx.as_ref(), &group_key, ChatMessage::user(&labeled));
+                tracing::debug!(
+                    channel = %msg.channel,
+                    sender = %msg.sender,
+                    group_key = %group_key,
+                    "Observed group message (no response)"
+                );
+                return;
+            }
+        }
+    }
+
     let history_key = conversation_history_key(&msg);
     let route = get_route_selection(ctx.as_ref(), &history_key);
     let runtime_defaults = runtime_defaults_snapshot(ctx.as_ref());
@@ -1873,6 +1917,27 @@ async fn process_channel_message(
         if let Some(last_turn) = prior_turns.last_mut() {
             if last_turn.role == "user" && !memory_context.is_empty() {
                 last_turn.content = format!("{memory_context}{}", msg.content);
+            }
+        }
+    }
+
+    // ── Inject observed group context when the bot is mentioned ──
+    // If this is a group @-mention and there are observed (non-mention)
+    // messages stored under the group key, prepend them so the LLM can
+    // see the recent conversation it was silently observing.
+    if let Some(ref meta) = msg.metadata {
+        if meta.is_group && meta.is_bot_mentioned {
+            let group_key = format!("{}_group_{}", msg.channel, msg.reply_target);
+            let group_turns = ctx
+                .conversation_histories
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .remove(&group_key)
+                .unwrap_or_default();
+            if !group_turns.is_empty() {
+                let mut injected = normalize_cached_channel_turns(group_turns);
+                injected.append(&mut prior_turns);
+                prior_turns = injected;
             }
         }
     }
@@ -3790,6 +3855,23 @@ pub async fn start_channels(config: Config) -> Result<()> {
         .slack
         .as_ref()
         .is_some_and(|sl| sl.interrupt_on_new_message);
+    let mention_only = MentionOnlyConfig {
+        telegram: config
+            .channels_config
+            .telegram
+            .as_ref()
+            .is_some_and(|tg| tg.mention_only),
+        discord: config
+            .channels_config
+            .discord
+            .as_ref()
+            .is_some_and(|dc| dc.mention_only),
+        mattermost: config
+            .channels_config
+            .mattermost
+            .as_ref()
+            .is_some_and(|mm| mm.mention_only.unwrap_or(false)),
+    };
 
     let runtime_ctx = Arc::new(ChannelRuntimeContext {
         channels_by_name,
@@ -3817,6 +3899,7 @@ pub async fn start_channels(config: Config) -> Result<()> {
             telegram: interrupt_on_new_message,
             slack: interrupt_on_new_message_slack,
         },
+        mention_only,
         multimodal: config.multimodal.clone(),
         hooks: if config.hooks.enabled {
             let mut runner = crate::hooks::HookRunner::new();
@@ -4833,7 +4916,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -4901,7 +4984,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -4983,7 +5066,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 3,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5050,7 +5133,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5127,7 +5210,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5224,7 +5307,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5303,7 +5386,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 3,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5397,7 +5480,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 4,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5476,7 +5559,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5545,7 +5628,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -5724,7 +5807,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "test-channel".to_string(),
             timestamp: 1,
             thread_ts: None,
-        })
+            metadata: None,        })
         .await
         .unwrap();
         tx.send(traits::ChannelMessage {
@@ -5735,7 +5818,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "test-channel".to_string(),
             timestamp: 2,
             thread_ts: None,
-        })
+            metadata: None,        })
         .await
         .unwrap();
         drop(tx);
@@ -5813,7 +5896,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            })
+                metadata: None,            })
             .await
             .unwrap();
             tokio::time::sleep(Duration::from_millis(40)).await;
@@ -5825,7 +5908,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            })
+                metadata: None,            })
             .await
             .unwrap();
         });
@@ -5916,7 +5999,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "slack".to_string(),
                 timestamp: 1,
                 thread_ts: Some("1741234567.100001".to_string()),
-            })
+                metadata: None,            })
             .await
             .unwrap();
             tokio::time::sleep(Duration::from_millis(40)).await;
@@ -5928,7 +6011,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "slack".to_string(),
                 timestamp: 2,
                 thread_ts: Some("1741234567.100001".to_string()),
-            })
+                metadata: None,            })
             .await
             .unwrap();
         });
@@ -6016,7 +6099,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            })
+                metadata: None,            })
             .await
             .unwrap();
             tokio::time::sleep(Duration::from_millis(30)).await;
@@ -6028,7 +6111,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            })
+                metadata: None,            })
             .await
             .unwrap();
         });
@@ -6098,7 +6181,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -6165,7 +6248,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -6568,7 +6651,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 1,
             thread_ts: None,
-        };
+            metadata: None,        };
 
         assert_eq!(conversation_memory_key(&msg), "slack_U123_msg_abc123");
     }
@@ -6583,7 +6666,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 1,
             thread_ts: Some("1741234567.123456".into()),
-        };
+            metadata: None,        };
 
         assert_eq!(
             followup_thread_id(&msg).as_deref(),
@@ -6601,7 +6684,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "cli".into(),
             timestamp: 1,
             thread_ts: None,
-        };
+            metadata: None,        };
 
         assert_eq!(followup_thread_id(&msg).as_deref(), Some("msg_abc123"));
     }
@@ -6616,7 +6699,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 1,
             thread_ts: None,
-        };
+            metadata: None,        };
         let msg2 = traits::ChannelMessage {
             id: "msg_2".into(),
             sender: "U123".into(),
@@ -6625,7 +6708,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 2,
             thread_ts: None,
-        };
+            metadata: None,        };
 
         assert_ne!(
             conversation_memory_key(&msg1),
@@ -6646,7 +6729,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 1,
             thread_ts: None,
-        };
+            metadata: None,        };
         let msg2 = traits::ChannelMessage {
             id: "msg_2".into(),
             sender: "U123".into(),
@@ -6655,7 +6738,7 @@ BTC is currently around $65,000 based on latest tool output."#
             channel: "slack".into(),
             timestamp: 2,
             thread_ts: None,
-        };
+            metadata: None,        };
 
         mem.store(
             &conversation_memory_key(&msg1),
@@ -6790,7 +6873,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -6805,7 +6888,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -6883,7 +6966,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -6976,7 +7059,7 @@ BTC is currently around $65,000 based on latest tool output."#
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -7534,7 +7617,7 @@ This is an example JSON object for profile settings."#;
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -7607,7 +7690,7 @@ This is an example JSON object for profile settings."#;
                 channel: "test-channel".to_string(),
                 timestamp: 1,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
@@ -7622,7 +7705,7 @@ This is an example JSON object for profile settings."#;
                 channel: "test-channel".to_string(),
                 timestamp: 2,
                 thread_ts: None,
-            },
+                metadata: None,            },
             CancellationToken::new(),
         )
         .await;
