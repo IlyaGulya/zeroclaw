@@ -5562,6 +5562,16 @@ impl Config {
         }
 
         set_runtime_proxy_config(self.proxy.clone());
+
+        // Channel secrets from env — allows container orchestrators (Portainer,
+        // Kubernetes, etc.) to inject tokens without baking them into config.toml.
+        if let Ok(token) = std::env::var("TELEGRAM_BOT_TOKEN") {
+            if !token.is_empty() {
+                if let Some(ref mut tg) = self.channels_config.telegram {
+                    tg.bot_token = token;
+                }
+            }
+        }
     }
 
     async fn resolve_config_path_for_save(&self) -> Result<PathBuf> {
