@@ -193,6 +193,7 @@ impl NextcloudTalkChannel {
             channel: "nextcloud_talk".to_string(),
             timestamp: Self::now_unix_secs(),
             thread_ts: None,
+            metadata: None,
         });
 
         messages
