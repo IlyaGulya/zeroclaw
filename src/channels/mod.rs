@@ -8515,6 +8515,7 @@ This is an example JSON object for profile settings."#;
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
+                metadata: None,
             },
             CancellationToken::new(),
         )
@@ -8623,6 +8624,7 @@ This is an example JSON object for profile settings."#;
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
+                metadata: None,
             },
             CancellationToken::new(),
         )
@@ -8723,6 +8725,7 @@ This is an example JSON object for profile settings."#;
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
+                metadata: None,
             },
             CancellationToken::new(),
         )
@@ -8843,6 +8846,7 @@ This is an example JSON object for profile settings."#;
                 channel: "telegram".to_string(),
                 timestamp: 1,
                 thread_ts: None,
+                metadata: None,
             },
             CancellationToken::new(),
         )
