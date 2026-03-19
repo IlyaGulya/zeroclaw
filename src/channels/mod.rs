@@ -78,6 +78,7 @@ pub use reddit::RedditChannel;
 pub use signal::SignalChannel;
 pub use slack::SlackChannel;
 pub use telegram::TelegramChannel;
+#[allow(unused_imports)]
 pub use traits::{Channel, MessageMetadata, SendMessage};
 #[allow(unused_imports)]
 pub use tts::{TtsManager, TtsProvider};
