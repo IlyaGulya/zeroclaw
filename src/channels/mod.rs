@@ -4504,6 +4504,11 @@ mod tests {
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             provider_runtime_options: providers::ProviderRuntimeOptions::default(),
@@ -4613,6 +4618,11 @@ mod tests {
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             provider_runtime_options: providers::ProviderRuntimeOptions::default(),
@@ -4677,6 +4687,11 @@ mod tests {
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -4761,6 +4776,11 @@ mod tests {
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -5299,6 +5319,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             non_cli_excluded_tools: Arc::new(Vec::new()),
             tool_call_dedup_exempt: Arc::new(Vec::new()),
             multimodal: crate::config::MultimodalConfig::default(),
@@ -5372,6 +5397,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             non_cli_excluded_tools: Arc::new(Vec::new()),
             tool_call_dedup_exempt: Arc::new(Vec::new()),
@@ -5461,6 +5491,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -5533,6 +5568,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -5616,6 +5656,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -5720,6 +5765,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -5804,6 +5854,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -5905,6 +5960,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -5990,6 +6050,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -6064,6 +6129,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -6251,6 +6321,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -6345,6 +6420,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: true,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -6456,6 +6536,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: true,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             ack_reactions: true,
             show_tool_calls: true,
             session_store: None,
@@ -6563,6 +6648,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: true,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -6652,6 +6742,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -6724,6 +6819,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -7363,6 +7463,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -7463,6 +7568,11 @@ BTC is currently around $65,000 based on latest tool output."#
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -7561,6 +7671,11 @@ BTC is currently around $65,000 based on latest tool output."#
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -8125,6 +8240,11 @@ This is an example JSON object for profile settings."#;
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -8204,6 +8324,11 @@ This is an example JSON object for profile settings."#;
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -8360,6 +8485,11 @@ This is an example JSON object for profile settings."#;
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -8463,6 +8593,11 @@ This is an example JSON object for profile settings."#;
                 telegram: false,
                 slack: false,
             },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
+            },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
             non_cli_excluded_tools: Arc::new(Vec::new()),
@@ -8557,6 +8692,11 @@ This is an example JSON object for profile settings."#;
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
@@ -8672,6 +8812,11 @@ This is an example JSON object for profile settings."#;
             interrupt_on_new_message: InterruptOnNewMessageConfig {
                 telegram: false,
                 slack: false,
+            },
+            mention_only: MentionOnlyConfig {
+                telegram: false,
+                discord: false,
+                mattermost: false,
             },
             multimodal: crate::config::MultimodalConfig::default(),
             hooks: None,
