@@ -294,7 +294,8 @@ end tell"#
                                 .unwrap_or_default()
                                 .as_secs(),
                             thread_ts: None,
-                            metadata: None,                        };
+                            metadata: None,
+                        };
 
                         if tx.send(msg).await.is_err() {
                             return Ok(());

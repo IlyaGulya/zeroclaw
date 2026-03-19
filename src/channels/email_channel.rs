@@ -467,7 +467,8 @@ impl EmailChannel {
                 channel: "email".to_string(),
                 timestamp: email.timestamp,
                 thread_ts: None,
-                metadata: None,            };
+                metadata: None,
+            };
 
             if tx.send(msg).await.is_err() {
                 // Channel closed, exit cleanly

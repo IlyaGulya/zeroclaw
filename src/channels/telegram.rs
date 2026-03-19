@@ -1074,7 +1074,8 @@ Allowlist Telegram username (without '@') or numeric user ID.",
                 .unwrap_or_default()
                 .as_secs(),
             thread_ts: thread_id,
-            metadata: None,        })
+            metadata: None,
+        })
     }
 
     /// Attempt to parse a Telegram update as a voice message and transcribe it.
@@ -1191,7 +1192,8 @@ Allowlist Telegram username (without '@') or numeric user ID.",
                 .unwrap_or_default()
                 .as_secs(),
             thread_ts: thread_id,
-            metadata: None,        })
+            metadata: None,
+        })
     }
 
     /// Extract sender username and display identity from a Telegram message object.
